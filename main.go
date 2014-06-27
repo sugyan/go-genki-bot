@@ -5,6 +5,10 @@ import (
 )
 
 func main() {
+
 	client := NewTwitterClient()
-	log.Println(client.VerifyCredentials())
+	if err := client.PrepareAccessToken(); err != nil {
+		log.Fatal("error: ", err)
+	}
+	log.Println(client)
 }
