@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
 	"github.com/mrjones/oauth"
 	"log"
@@ -10,6 +12,22 @@ import (
 type TwitterClient struct {
 	consumer    *oauth.Consumer
 	accessToken *oauth.AccessToken
+}
+
+// Tweet type
+type Tweet struct {
+	ID        int64
+	Text      string
+	CreatedAt string `json:"created_at"`
+	User      struct {
+		Name       string
+		ScreenName string `json:"screen_name"`
+	}
+}
+
+// Stream type
+type Stream struct {
+	scanner *bufio.Scanner
 }
 
 // NewTwitterClient creates new Twitter client
@@ -93,8 +111,24 @@ func (c *TwitterClient) PrepareAccessToken() (err error) {
 	return nil
 }
 
+// UserStream returns user stream
+func (c *TwitterClient) UserStream() (stream *Stream, err error) {
+	resp, err := c.consumer.Get(
+		"https://userstream.twitter.com/1.1/user.json",
+		map[string]string{},
+		c.accessToken,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Stream{
+		scanner: bufio.NewScanner(resp.Body),
+	}, nil
+}
+
 func (c *TwitterClient) verifyCredentials(accessToken *oauth.AccessToken) (ok bool, err error) {
-	response, err := c.consumer.Get(
+	resp, err := c.consumer.Get(
 		"https://api.twitter.com/1.1/account/verify_credentials.json",
 		map[string]string{},
 		accessToken,
@@ -106,7 +140,34 @@ func (c *TwitterClient) verifyCredentials(accessToken *oauth.AccessToken) (ok bo
 		}
 		return false, err
 	}
-	defer response.Body.Close()
+	defer resp.Body.Close()
 
 	return true, nil
+}
+
+// NextTweet returns tweet from stream
+func (s *Stream) NextTweet() (tweet *Tweet, err error) {
+	getData := func() ([]byte, error) {
+		for {
+			if !s.scanner.Scan() {
+				return nil, s.scanner.Err()
+			}
+			bytes := s.scanner.Bytes()
+			if len(bytes) > 0 {
+				return bytes, nil
+			}
+		}
+	}
+	for s.scanner.Err() == nil {
+		var bytes []byte
+		bytes, err = getData()
+		if err != nil {
+			return nil, err
+		}
+		json.Unmarshal(bytes, &tweet)
+		if tweet.ID > 0 {
+			return tweet, nil
+		}
+	}
+	return nil, s.scanner.Err()
 }

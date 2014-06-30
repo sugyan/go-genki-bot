@@ -5,10 +5,21 @@ import (
 )
 
 func main() {
-
 	client := NewTwitterClient()
 	if err := client.PrepareAccessToken(); err != nil {
 		log.Fatal("error: ", err)
 	}
-	log.Println(client)
+
+	stream, err := client.UserStream()
+	if err != nil {
+		log.Fatal("error: ", err)
+	}
+
+	for {
+		tweet, err := stream.NextTweet()
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println(tweet)
+	}
 }
