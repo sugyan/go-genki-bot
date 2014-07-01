@@ -61,14 +61,14 @@ func NewTwitterClient() *TwitterClient {
 }
 
 // PrepareAccessToken sets valid access token
-func (c *TwitterClient) PrepareAccessToken() (err error) {
+func (c *TwitterClient) PrepareAccessToken(user *string) (err error) {
 	conf, err := NewConfig("go-genki-bot")
 	if err != nil {
 		return
 	}
 
 	// read from config file
-	accessToken, err := conf.GetAccessToken()
+	accessToken, err := conf.GetAccessToken(user)
 	if err != nil {
 		// ignore read error
 		log.Println(err)

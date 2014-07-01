@@ -69,8 +69,8 @@ func (*GenkiBot) MentionToTweet(tweet *Tweet) (mention *Mention) {
 }
 
 // Run starts genki-bot
-func (bot *GenkiBot) Run() {
-	if err := bot.client.PrepareAccessToken(); err != nil {
+func (bot *GenkiBot) Run(user *string) {
+	if err := bot.client.PrepareAccessToken(user); err != nil {
 		log.Fatal("error: ", err)
 	}
 	stream, err := bot.client.UserStream()

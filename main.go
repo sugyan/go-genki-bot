@@ -1,5 +1,11 @@
 package main
 
+import (
+	"flag"
+)
+
 func main() {
-	NewGenkiBot().Run()
+	user := flag.String("user", "default", "user screen name")
+	flag.Parse()
+	NewGenkiBot().Run(user)
 }
