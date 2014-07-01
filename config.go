@@ -2,10 +2,10 @@ package main
 
 import (
 	"code.google.com/p/goconf/conf"
+	"fmt"
 	"github.com/mrjones/oauth"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path"
 )
 
@@ -22,13 +22,15 @@ type Config struct {
 // NewConfig creates new Config
 // TODO: permission check?
 func NewConfig(appName string) (config *Config, err error) {
-	var u *user.User
-	u, err = user.Current()
+	homeDir := os.Getenv("HOME")
+	if homeDir == "" {
+		return nil, fmt.Errorf("Environment variable HOME not set")
+	}
 	if err != nil {
 		return
 	}
 	// create directory
-	dirPath := path.Join(u.HomeDir, ".config", appName)
+	dirPath := path.Join(homeDir, ".config", appName)
 	if err = os.MkdirAll(dirPath, 0755); err != nil {
 		return
 	}
