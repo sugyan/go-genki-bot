@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/mrjones/oauth"
 	"log"
+	"strconv"
 )
 
 // TwitterClient type
@@ -16,14 +17,14 @@ type TwitterClient struct {
 
 // TweetUser type
 type TweetUser struct {
-	ID         int64
+	ID         uint64
 	Name       string
 	ScreenName string `json:"screen_name"`
 }
 
 // RetweetedStatus type
 type RetweetedStatus struct {
-	ID        int64
+	ID        uint64
 	Text      string
 	CreatedAt string `json:"created_at"`
 	User      TweetUser
@@ -31,11 +32,11 @@ type RetweetedStatus struct {
 
 // Tweet type
 type Tweet struct {
-	ID                int64
+	ID                uint64
 	Text              string
 	CreatedAt         string          `json:"created_at"`
-	InReplyToUserID   int64           `json:"in_reply_to_user_id"`
-	InReplyToStatusID int64           `json:"in_reply_to_status_id"`
+	InReplyToUserID   uint64          `json:"in_reply_to_user_id"`
+	InReplyToStatusID uint64          `json:"in_reply_to_status_id"`
 	RetweetedStatus   RetweetedStatus `json:"retweeted_status"`
 	User              TweetUser
 }
@@ -134,12 +135,31 @@ func (c *TwitterClient) UserStream() (stream *Stream, err error) {
 		c.accessToken,
 	)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	return &Stream{
 		scanner: bufio.NewScanner(resp.Body),
 	}, nil
+}
+
+// Mention updates status with in_reply_to_status_id
+func (c *TwitterClient) Mention(mention *Mention) (tweet *Tweet, err error) {
+	resp, err := c.consumer.Post(
+		"https://api.twitter.com/1.1/statuses/update.json",
+		map[string]string{
+			"status":                mention.Text,
+			"in_reply_to_status_id": strconv.FormatUint(mention.StatusID, 10),
+		},
+		c.accessToken,
+	)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	json.NewDecoder(resp.Body).Decode(&tweet)
+	return tweet, nil
 }
 
 func (c *TwitterClient) verifyCredentials(accessToken *oauth.AccessToken) (ok bool, err error) {
@@ -183,7 +203,6 @@ func (s *Stream) NextTweet() (tweet *Tweet, err error) {
 		}
 		// TODO?
 		if tweet.ID > 0 {
-			// log.Println(string(bytes))
 			return tweet, nil
 		}
 	}

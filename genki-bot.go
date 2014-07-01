@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"regexp"
+	"time"
 )
 
 // GenkiBot type
@@ -13,7 +15,7 @@ type GenkiBot struct {
 
 // Mention type
 type Mention struct {
-	StatusID int64
+	StatusID uint64
 	Text     string
 }
 
@@ -84,11 +86,19 @@ func (bot *GenkiBot) Run(user *string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println(tweet)
+		log.Printf("@%s: %s", tweet.User.ScreenName, tweet.Text)
 
 		mention := bot.MentionToTweet(tweet)
 		if mention != nil {
-			log.Println(mention)
+			go func() {
+				time.Sleep(time.Second * time.Duration(rand.Int31n(5)+5))
+				tweet, err := bot.client.Mention(mention)
+				if err != nil {
+					log.Println(err)
+				} else {
+					log.Printf("tweeted: %s", tweet.Text)
+				}
+			}()
 		}
 	}
 }
