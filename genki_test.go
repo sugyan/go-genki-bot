@@ -4,31 +4,32 @@ import (
 	"testing"
 )
 
-func TestGenki(t *testing.T) {
+func TestMention(t *testing.T) {
 	var result *Mention
+	bot := NewGenkiBot()
 
 	// empty tweet
-	result = (&Tweet{}).Genki()
+	result = bot.MentionToTweet(&Tweet{})
 	if result != nil {
 		t.Error("should not return mention")
 	}
 
 	// normal tweet
-	result = (&Tweet{
+	result = bot.MentionToTweet(&Tweet{
 		Text: "とても普通の健全なツイート",
-	}).Genki()
+	})
 	if result != nil {
 		t.Error("should not return mention")
 	}
 
 	// 疲れた
-	result = (&Tweet{
+	result = bot.MentionToTweet(&Tweet{
 		ID:   555,
 		Text: "はー疲れた",
 		User: TweetUser{
 			ScreenName: "hoge",
 		},
-	}).Genki()
+	})
 	if result == nil {
 		t.Fatal("should return mention")
 	}
@@ -40,21 +41,21 @@ func TestGenki(t *testing.T) {
 	}
 	// 疲れてない
 	for _, text := range []string{"お疲れさまでした。", "お疲れさん", "お疲れ様です"} {
-		result = (&Tweet{
+		result = bot.MentionToTweet(&Tweet{
 			Text: text,
-		}).Genki()
+		})
 		if result != nil {
 			t.Error("should not return mention")
 		}
 	}
 
 	// 凹
-	result = (&Tweet{
+	result = bot.MentionToTweet(&Tweet{
 		Text: "凹んでる",
 		User: TweetUser{
 			ScreenName: "hoge",
 		},
-	}).Genki()
+	})
 	if result == nil {
 		t.Fatal("should return mention")
 	}
@@ -63,12 +64,12 @@ func TestGenki(t *testing.T) {
 	}
 
 	// 心折
-	result = (&Tweet{
+	result = bot.MentionToTweet(&Tweet{
 		Text: "心折れた。",
 		User: TweetUser{
 			ScreenName: "hoge",
 		},
-	}).Genki()
+	})
 	if result == nil {
 		t.Fatal("should return mention")
 	}
@@ -78,12 +79,12 @@ func TestGenki(t *testing.T) {
 
 	// さびしい
 	for _, text := range []string{"寂しい", "淋しい"} {
-		result = (&Tweet{
+		result = bot.MentionToTweet(&Tweet{
 			Text: text,
 			User: TweetUser{
 				ScreenName: "hoge",
 			},
-		}).Genki()
+		})
 		if result == nil {
 			t.Fatal("should return mention")
 		}
@@ -93,12 +94,12 @@ func TestGenki(t *testing.T) {
 	}
 
 	// 弱ってる
-	result = (&Tweet{
+	result = bot.MentionToTweet(&Tweet{
 		Text: "弱ったなぁ",
 		User: TweetUser{
 			ScreenName: "hoge",
 		},
-	}).Genki()
+	})
 	if result == nil {
 		t.Fatal("should return mention")
 	}
@@ -107,12 +108,12 @@ func TestGenki(t *testing.T) {
 	}
 
 	// つらい
-	result = (&Tweet{
+	result = bot.MentionToTweet(&Tweet{
 		Text: "とてもつらい",
 		User: TweetUser{
 			ScreenName: "hoge",
 		},
-	}).Genki()
+	})
 	if result == nil {
 		t.Fatal("should return mention")
 	}
@@ -121,12 +122,12 @@ func TestGenki(t *testing.T) {
 	}
 
 	// 死にたい
-	result = (&Tweet{
+	result = bot.MentionToTweet(&Tweet{
 		Text: "死にたい〜",
 		User: TweetUser{
 			ScreenName: "hoge",
 		},
-	}).Genki()
+	})
 	if result == nil {
 		t.Fatal("should return mention")
 	}
@@ -136,12 +137,12 @@ func TestGenki(t *testing.T) {
 
 	// その他
 	for _, text := range []string{"うわ。。。", "ミスった orz"} {
-		result = (&Tweet{
+		result = bot.MentionToTweet(&Tweet{
 			Text: text,
 			User: TweetUser{
 				ScreenName: "hoge",
 			},
-		}).Genki()
+		})
 		if result == nil {
 			t.Fatal("should return mention")
 		}
@@ -151,28 +152,28 @@ func TestGenki(t *testing.T) {
 	}
 
 	// include URL
-	result = (&Tweet{
+	result = bot.MentionToTweet(&Tweet{
 		Text: "疲れてるしつらい。 http://example.com",
-	}).Genki()
+	})
 	if result != nil {
 		t.Error("should not return mention")
 	}
 
 	// reply, retweet
-	result = (&Tweet{
+	result = bot.MentionToTweet(&Tweet{
 		Text:              "疲れてるしつらい。",
 		InReplyToStatusID: 42,
-	}).Genki()
+	})
 	if result != nil {
 		t.Error("should not return mention")
 	}
 
-	result = (&Tweet{
+	result = bot.MentionToTweet(&Tweet{
 		Text: "疲れてるしつらい。",
 		RetweetedStatus: RetweetedStatus{
 			ID: 42,
 		},
-	}).Genki()
+	})
 	if result != nil {
 		t.Error("should not return mention")
 	}
