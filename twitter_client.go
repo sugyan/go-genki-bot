@@ -14,15 +14,30 @@ type TwitterClient struct {
 	accessToken *oauth.AccessToken
 }
 
-// Tweet type
-type Tweet struct {
+// TweetUser type
+type TweetUser struct {
+	ID         int64
+	Name       string
+	ScreenName string `json:"screen_name"`
+}
+
+// RetweetedStatus type
+type RetweetedStatus struct {
 	ID        int64
 	Text      string
 	CreatedAt string `json:"created_at"`
-	User      struct {
-		Name       string
-		ScreenName string `json:"screen_name"`
-	}
+	User      TweetUser
+}
+
+// Tweet type
+type Tweet struct {
+	ID                int64
+	Text              string
+	CreatedAt         string          `json:"created_at"`
+	InReplyToUserID   int64           `json:"in_reply_to_user_id"`
+	InReplyToStatusID int64           `json:"in_reply_to_status_id"`
+	RetweetedStatus   RetweetedStatus `json:"retweeted_status"`
+	User              TweetUser
 }
 
 // Stream type
@@ -147,25 +162,28 @@ func (c *TwitterClient) verifyCredentials(accessToken *oauth.AccessToken) (ok bo
 
 // NextTweet returns tweet from stream
 func (s *Stream) NextTweet() (tweet *Tweet, err error) {
-	getData := func() ([]byte, error) {
-		for {
-			if !s.scanner.Scan() {
-				return nil, s.scanner.Err()
-			}
-			bytes := s.scanner.Bytes()
-			if len(bytes) > 0 {
-				return bytes, nil
-			}
-		}
-	}
 	for s.scanner.Err() == nil {
 		var bytes []byte
-		bytes, err = getData()
+		bytes, err = func() ([]byte, error) {
+			for {
+				if !s.scanner.Scan() {
+					return nil, s.scanner.Err()
+				}
+				bytes := s.scanner.Bytes()
+				if len(bytes) > 0 {
+					return bytes, nil
+				}
+			}
+		}()
 		if err != nil {
 			return nil, err
 		}
-		json.Unmarshal(bytes, &tweet)
+		if err = json.Unmarshal(bytes, &tweet); err != nil {
+			return nil, err
+		}
+		// TODO?
 		if tweet.ID > 0 {
+			// log.Println(string(bytes))
 			return tweet, nil
 		}
 	}

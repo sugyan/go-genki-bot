@@ -15,11 +15,17 @@ func main() {
 		log.Fatal("error: ", err)
 	}
 
+	log.Println("userstream started.")
 	for {
 		tweet, err := stream.NextTweet()
 		if err != nil {
 			log.Fatal(err)
 		}
 		log.Println(tweet)
+
+		mention := tweet.Genki()
+		if mention != nil {
+			log.Println(mention)
+		}
 	}
 }
