@@ -3,7 +3,6 @@ package main
 import (
 	"code.google.com/p/goconf/conf"
 	"fmt"
-	"github.com/mrjones/oauth"
 	"io/ioutil"
 	"os"
 	"path"
@@ -17,6 +16,12 @@ const (
 type Config struct {
 	FileName   string
 	configFile *conf.ConfigFile
+}
+
+// AccessToken type
+type AccessToken struct {
+	Token  string
+	Secret string
 }
 
 // NewConfig creates new Config
@@ -59,7 +64,7 @@ func NewConfig(appName string) (config *Config, err error) {
 
 // GetAccessToken returns access token from config file
 // return nil if config doesn't exist
-func (c *Config) GetAccessToken(user *string) (token *oauth.AccessToken, err error) {
+func (c *Config) GetAccessToken(user *string) (token *AccessToken, err error) {
 	var accessToken, accessTokenSecret string
 	accessToken, err = c.configFile.GetString(*user, "access_token")
 	if err != nil {
@@ -70,21 +75,16 @@ func (c *Config) GetAccessToken(user *string) (token *oauth.AccessToken, err err
 		return
 	}
 
-	return &oauth.AccessToken{
-		Token:          accessToken,
-		Secret:         accessTokenSecret,
-		AdditionalData: map[string]string{},
+	return &AccessToken{
+		Token:  accessToken,
+		Secret: accessTokenSecret,
 	}, nil
 }
 
 // SetAccessToken stores access token to config file
-func (c *Config) SetAccessToken(token *oauth.AccessToken) (err error) {
-	if name, ok := token.AdditionalData["screen_name"]; ok {
-		c.configFile.AddOption(name, "access_token", token.Token)
-		c.configFile.AddOption(name, "access_token_secret", token.Secret)
-	}
-	c.configFile.AddOption("default", "access_token", token.Token)
-	c.configFile.AddOption("default", "access_token_secret", token.Secret)
+func (c *Config) SetAccessToken(name string, token *AccessToken) (err error) {
+	c.configFile.AddOption(name, "access_token", token.Token)
+	c.configFile.AddOption(name, "access_token_secret", token.Secret)
 	err = c.configFile.WriteConfigFile(c.FileName, 0644, "")
 	return err
 }

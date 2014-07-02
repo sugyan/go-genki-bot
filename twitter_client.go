@@ -77,7 +77,7 @@ func (c *TwitterClient) PrepareAccessToken(user *string) (err error) {
 	// verify stored access token
 	if accessToken != nil {
 		var verified bool
-		verified, err = c.verifyCredentials(accessToken)
+		verified, err = c.verifyCredentials(accessToken.Token, accessToken.Secret)
 		if err != nil {
 			return
 		}
@@ -89,41 +89,47 @@ func (c *TwitterClient) PrepareAccessToken(user *string) (err error) {
 
 	// get access token by "oob" process
 	if accessToken == nil {
-		var (
-			requestToken *oauth.RequestToken
-			url          string
-		)
-		requestToken, url, err = c.consumer.GetRequestTokenAndUrl("oob")
+		requestToken, url, err := c.consumer.GetRequestTokenAndUrl("oob")
 		if err != nil {
-			return
+			return err
 		}
 		fmt.Printf("open %s and enter PIN code.\n", url)
 		fmt.Print("PIN: ")
 
 		var verificationCode string
-		if _, err = fmt.Scanln(&verificationCode); err != nil {
-			return
+		if _, err := fmt.Scanln(&verificationCode); err != nil {
+			return err
 		}
 		// get credentials by PIN code
-		accessToken, err = c.consumer.AuthorizeToken(requestToken, verificationCode)
+		verifiedToken, err := c.consumer.AuthorizeToken(requestToken, verificationCode)
 		if err != nil {
-			return
+			return err
 		}
 
 		// verify and store to config file
-		var verified bool
-		verified, err = c.verifyCredentials(accessToken)
+		verified, err := c.verifyCredentials(verifiedToken.Token, verifiedToken.Secret)
 		if err != nil {
-			return
+			return err
+		}
+
+		accessToken = &AccessToken{
+			Token:  verifiedToken.Token,
+			Secret: verifiedToken.Secret,
 		}
 		if verified {
-			conf.SetAccessToken(accessToken)
+			if name, ok := verifiedToken.AdditionalData["screen_name"]; ok {
+				conf.SetAccessToken(name, accessToken)
+			}
+			conf.SetAccessToken("default", accessToken)
 		} else {
 			return fmt.Errorf("Verify credential failed.")
 		}
 	}
 
-	c.accessToken = accessToken
+	c.accessToken = &oauth.AccessToken{
+		Token:  accessToken.Token,
+		Secret: accessToken.Secret,
+	}
 	return nil
 }
 
@@ -162,11 +168,14 @@ func (c *TwitterClient) Mention(mention *Mention) (tweet *Tweet, err error) {
 	return tweet, nil
 }
 
-func (c *TwitterClient) verifyCredentials(accessToken *oauth.AccessToken) (ok bool, err error) {
+func (c *TwitterClient) verifyCredentials(token string, secret string) (ok bool, err error) {
 	resp, err := c.consumer.Get(
 		"https://api.twitter.com/1.1/account/verify_credentials.json",
 		map[string]string{},
-		accessToken,
+		&oauth.AccessToken{
+			Token:  token,
+			Secret: secret,
+		},
 	)
 	if err != nil {
 		if err, ok := err.(oauth.HTTPExecuteError); ok {
