@@ -42,6 +42,8 @@ func (*GenkiBot) MentionToTweet(tweet *Tweet) (mention *Mention) {
 	switch {
 	case regexp.MustCompile("https?://").MatchString(tweet.Text):
 		return
+	case regexp.MustCompile("病").MatchString(tweet.Text):
+		shinpai += "病んでるの？"
 	case regexp.MustCompile("疲").MatchString(tweet.Text):
 		if regexp.MustCompile("疲(?:れ(?:様|さ(?:ま|ん)))").MatchString(tweet.Text) {
 			return

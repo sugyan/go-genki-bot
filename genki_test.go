@@ -22,9 +22,26 @@ func TestMention(t *testing.T) {
 		t.Error("should not return mention")
 	}
 
-	// 疲れた
+	// 病み
 	result = bot.MentionToTweet(&Tweet{
 		ID:   555,
+		Text: "病気だ",
+		User: TweetUser{
+			ScreenName: "hoge",
+		},
+	})
+	if result == nil {
+		t.Fatal("should return mention")
+	}
+	if result.Text != "@hoge 病んでるの？げんきだして！" {
+		t.Errorf("incorrect text: %s", result.Text)
+	}
+	if result.StatusID != 555 {
+		t.Errorf("incorrect status id: %s", result.StatusID)
+	}
+
+	// 疲れた
+	result = bot.MentionToTweet(&Tweet{
 		Text: "はー疲れた",
 		User: TweetUser{
 			ScreenName: "hoge",
@@ -35,9 +52,6 @@ func TestMention(t *testing.T) {
 	}
 	if result.Text != "@hoge 疲れてるの？げんきだして！" {
 		t.Errorf("incorrect text: %s", result.Text)
-	}
-	if result.StatusID != 555 {
-		t.Errorf("incorrect status id: %s", result.StatusID)
 	}
 	// 疲れてない
 	for _, text := range []string{"お疲れさまでした。", "お疲れさん", "お疲れ様です"} {
@@ -132,6 +146,20 @@ func TestMention(t *testing.T) {
 		t.Fatal("should return mention")
 	}
 	if result.Text != "@hoge 死なないで、げんきだして！" {
+		t.Errorf("incorrect text: %s", result.Text)
+	}
+
+	// 複数
+	result = bot.MentionToTweet(&Tweet{
+		Text: "病んでるし疲れてるし凹んでいて寂しいし死にたい〜",
+		User: TweetUser{
+			ScreenName: "hoge",
+		},
+	})
+	if result == nil {
+		t.Fatal("should return mention")
+	}
+	if result.Text != "@hoge 病んでるの？げんきだして！" {
 		t.Errorf("incorrect text: %s", result.Text)
 	}
 
