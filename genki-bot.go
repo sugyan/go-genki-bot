@@ -81,26 +81,23 @@ func (bot *GenkiBot) Run(user *string) {
 	if err != nil {
 		log.Fatal("error: ", err)
 	}
-
 	log.Println("userstream started.")
-	for {
-		tweet, err := stream.NextTweet()
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("@%s: %s", tweet.User.ScreenName, tweet.Text)
 
-		mention := bot.MentionToTweet(tweet)
-		if mention != nil {
-			go func() {
-				time.Sleep(time.Second * time.Duration(rand.Int31n(5)+5))
-				tweet, err := bot.client.Mention(mention)
-				if err != nil {
-					log.Println(err)
-				} else {
-					log.Printf("tweeted: %s", tweet.Text)
-				}
-			}()
+	for {
+		select {
+		case tweet := <-stream:
+			log.Printf("@%s: %s", tweet.User.ScreenName, tweet.Text)
+			if mention := bot.MentionToTweet(tweet); mention != nil {
+				go func(m *Mention) {
+					time.Sleep(time.Second * time.Duration(rand.Int31n(5)+5))
+					tweet, err := bot.client.Mention(m)
+					if err != nil {
+						log.Println(err)
+					} else {
+						log.Printf("tweeted: %s", tweet.Text)
+					}
+				}(mention)
+			}
 		}
 	}
 }

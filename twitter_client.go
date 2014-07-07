@@ -41,11 +41,6 @@ type Tweet struct {
 	User              TweetUser
 }
 
-// Stream type
-type Stream struct {
-	scanner *bufio.Scanner
-}
-
 // NewTwitterClient creates new Twitter client
 func NewTwitterClient() *TwitterClient {
 	return &TwitterClient{
@@ -134,7 +129,7 @@ func (c *TwitterClient) PrepareAccessToken(user *string) (err error) {
 }
 
 // UserStream returns user stream
-func (c *TwitterClient) UserStream() (stream *Stream, err error) {
+func (c *TwitterClient) UserStream() (ch chan *Tweet, err error) {
 	resp, err := c.consumer.Get(
 		"https://userstream.twitter.com/1.1/user.json",
 		map[string]string{},
@@ -143,10 +138,21 @@ func (c *TwitterClient) UserStream() (stream *Stream, err error) {
 	if err != nil {
 		return
 	}
-
-	return &Stream{
+	stream := &Stream{
 		scanner: bufio.NewScanner(resp.Body),
-	}, nil
+	}
+
+	ch = make(chan *Tweet)
+	go func() {
+		for {
+			tweet, err := stream.NextTweet()
+			if err != nil {
+				log.Fatal(err)
+			}
+			ch <- tweet
+		}
+	}()
+	return ch, nil
 }
 
 // Mention updates status with in_reply_to_status_id
@@ -187,33 +193,4 @@ func (c *TwitterClient) verifyCredentials(token string, secret string) (ok bool,
 	defer resp.Body.Close()
 
 	return true, nil
-}
-
-// NextTweet returns tweet from stream
-func (s *Stream) NextTweet() (tweet *Tweet, err error) {
-	for s.scanner.Err() == nil {
-		var bytes []byte
-		bytes, err = func() ([]byte, error) {
-			for {
-				if !s.scanner.Scan() {
-					return nil, s.scanner.Err()
-				}
-				bytes := s.scanner.Bytes()
-				if len(bytes) > 0 {
-					return bytes, nil
-				}
-			}
-		}()
-		if err != nil {
-			return nil, err
-		}
-		if err = json.Unmarshal(bytes, &tweet); err != nil {
-			return nil, err
-		}
-		// TODO?
-		if tweet.ID > 0 {
-			return tweet, nil
-		}
-	}
-	return nil, s.scanner.Err()
 }
