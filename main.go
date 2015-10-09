@@ -24,30 +24,48 @@ func main() {
 	}
 	client := twittergo.NewClient(clientConfig, nil)
 
-	query := url.Values{}
-	query.Set("user_id", bot.IdStr())
-	req, err := http.NewRequest("GET", "/1.1/followers/list.json?"+query.Encode(), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	res, err := client.SendRequest(req)
-	if err != nil {
-		log.Fatal(err)
-	}
+	var count int
+	var cursor string
+	for {
+		query := url.Values{}
+		query.Set("user_id", bot.IdStr())
+		query.Set("stringify_ids", "true")
+		query.Set("count", "5000")
+		if cursor != "" {
+			query.Set("cursor", cursor)
+		}
+		req, err := http.NewRequest("GET", "/1.1/followers/ids.json?"+query.Encode(), nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		res, err := client.SendRequest(req)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	results := &CursoredUsers{}
-	if err := res.Parse(results); err != nil {
-		log.Fatal(err)
-	}
+		results := &CursoredIDs{}
+		if err := res.Parse(results); err != nil {
+			log.Fatal(err)
+		}
 
-	log.Println(results.Users())
-	for _, user := range results.Users() {
-		log.Println(user)
-	}
+		log.Println(results)
+		for _, id := range results.IDs() {
+			count++
+			log.Println(id)
+		}
 
-	if res.HasRateLimit() {
-		log.Printf("Rate Limit: %v / %v, (next reset: %v)\n", res.RateLimitRemaining(), res.RateLimit(), res.RateLimitReset())
+		log.Printf("%v, %v", results.PreviousCursorStr(), results.NextCursorStr())
+		if res.HasRateLimit() {
+			log.Printf("Rate Limit: %v / %v, (next reset: %v)\n", res.RateLimitRemaining(), res.RateLimit(), res.RateLimitReset())
+		}
+
+		if results.NextCursorStr() == "0" {
+			break
+		} else {
+			cursor = results.NextCursorStr()
+		}
 	}
+	log.Printf("%v users", count)
 }
 
 func getBotAccount() (user *twittergo.User, err error) {

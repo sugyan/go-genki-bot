@@ -1,31 +1,27 @@
 package main
 
-import (
-	"github.com/kurrik/twittergo"
-)
+// IDs is id list
+type IDs []string
 
-// Users is users list
-type Users []twittergo.User
-
-// CursoredUsers is users list with cursor info
-type CursoredUsers map[string]interface{}
+// CursoredIDs is users list with cursor info
+type CursoredIDs map[string]interface{}
 
 // NextCursorStr returns next cursor
-func (cl CursoredUsers) NextCursorStr() string {
-	return cl["next_cursor_str"].(string)
+func (ci CursoredIDs) NextCursorStr() string {
+	return ci["next_cursor_str"].(string)
 }
 
 // PreviousCursorStr returns previous cursor
-func (cl CursoredUsers) PreviousCursorStr() string {
-	return cl["previous_cursor_str"].(string)
+func (ci CursoredIDs) PreviousCursorStr() string {
+	return ci["previous_cursor_str"].(string)
 }
 
-// Users returns users list
-func (cl CursoredUsers) Users() Users {
-	var a []interface{} = cl["users"].([]interface{})
-	b := make([]twittergo.User, len(a))
-	for i, v := range a {
-		b[i] = v.(map[string]interface{})
+// IDs returns users list
+func (ci CursoredIDs) IDs() IDs {
+	results := ci["ids"].([]interface{})
+	ids := make([]string, len(results))
+	for i, value := range results {
+		ids[i] = value.(string)
 	}
-	return b
+	return ids
 }
