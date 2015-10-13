@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/kurrik/oauth1a"
 	"github.com/kurrik/twittergo"
-	"github.com/sugyan/replybot"
+	"github.com/sugyan/mentionbot"
 	"log"
 	"net/http"
 	"os"
@@ -25,12 +25,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	bot := replybot.NewBot(consumerKey, consumerSecret)
+	bot := mentionbot.NewBot(consumerKey, consumerSecret)
 	ids, err := bot.FollowersIDs(account.IdStr())
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(len(ids))
+	log.Println(ids)
 }
 
 func getAccount(consumerKey string, consumerSecret string, accessToken string, accessTokenSecret string) (*twittergo.User, error) {
