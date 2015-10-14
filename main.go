@@ -5,12 +5,15 @@ import (
 	"github.com/kurrik/twittergo"
 	"github.com/sugyan/mentionbot"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
+	"time"
 )
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {
@@ -25,12 +28,26 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// get follwers ids
 	bot := mentionbot.NewBot(consumerKey, consumerSecret)
+	// bot.Debug(true)
 	ids, err := bot.FollowersIDs(account.IdStr())
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(ids)
+	// shuffle
+	for i := len(ids) - 1; i >= 0; i-- {
+		j := rand.Intn(i + 1)
+		ids[i], ids[j] = ids[j], ids[i]
+	}
+	// get followers list
+	users, err := bot.UsersLookup(ids[0:100])
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, user := range users {
+		log.Printf("@%s %s (%s)", user.ScreenName(), user.Name(), user.IdStr())
+	}
 }
 
 func getAccount(consumerKey string, consumerSecret string, accessToken string, accessTokenSecret string) (*twittergo.User, error) {
