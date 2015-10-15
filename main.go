@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"sort"
 	"time"
 )
 
@@ -45,11 +46,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	statuses := make(mentionbot.Statuses, 0)
 	for _, user := range users {
 		status := user.Status()
 		if status != nil {
-			log.Printf("[%v] @%s: %s", status.CreatedAt().Local(), user.ScreenName(), status.Text())
+			statuses = append(statuses, status)
 		}
+	}
+	sort.Sort(statuses)
+
+	for _, status := range statuses {
+		log.Printf("[%v] @%s(%s): %s", status.CreatedAt().Local(), status.User().ScreenName(), status.User().IDStr(), status.Text())
 	}
 }
 
