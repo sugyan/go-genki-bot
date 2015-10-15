@@ -46,7 +46,10 @@ func main() {
 		log.Fatal(err)
 	}
 	for _, user := range users {
-		log.Printf("@%s %s (%s)", user.ScreenName(), user.Name(), user.IdStr())
+		status := user.Status()
+		if status != nil {
+			log.Printf("[%v] @%s: %s", status.CreatedAt().Local(), user.ScreenName(), status.Text())
+		}
 	}
 }
 
