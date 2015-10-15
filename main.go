@@ -46,18 +46,24 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	statuses := make(mentionbot.Statuses, 0)
+	// get followers recent tweets
+	tweets := make(mentionbot.Tweets, 0)
 	for _, user := range users {
-		status := user.Status()
-		if status != nil {
-			statuses = append(statuses, status)
+		tweet := user.Status
+		if tweet != nil {
+			user.Status = nil // remove users status
+			tweet.User = user
+			tweets = append(tweets, tweet)
 		}
 	}
-	sort.Sort(statuses)
+	sort.Sort(tweets)
 
-	for _, status := range statuses {
-		log.Printf("[%v] @%s(%s): %s", status.CreatedAt().Local(), status.User().ScreenName(), status.User().IDStr(), status.Text())
+	for _, tweet := range tweets {
+		createdAt, err := tweet.CreatedAtTime()
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("[%v] @%s (%s): %s", createdAt.Local(), tweet.User.ScreenName, tweet.User.IdStr, tweet.Text)
 	}
 }
 
