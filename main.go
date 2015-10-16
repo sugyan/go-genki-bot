@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"sort"
 	"time"
 )
 
@@ -31,40 +30,20 @@ func main() {
 
 	// get follwers ids
 	bot := mentionbot.NewBot(consumerKey, consumerSecret)
-	// bot.Debug(true)
-	ids, err := bot.FollowersIDs(account.IdStr())
-	if err != nil {
-		log.Fatal(err)
-	}
-	// shuffle
-	for i := len(ids) - 1; i >= 0; i-- {
-		j := rand.Intn(i + 1)
-		ids[i], ids[j] = ids[j], ids[i]
-	}
-	// get followers list
-	users, err := bot.UsersLookup(ids[0:100])
-	if err != nil {
-		log.Fatal(err)
-	}
-	// get followers recent tweets
-	tweets := make(mentionbot.Tweets, 0)
-	for _, user := range users {
-		tweet := user.Status
-		if tweet != nil {
-			user.Status = nil // remove users status
-			tweet.User = user
-			tweets = append(tweets, tweet)
-		}
-	}
-	sort.Sort(tweets)
+	bot.Debug(true)
 
-	for _, tweet := range tweets {
+	timeline, err := bot.FollowersTimeline(account.IdStr())
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, tweet := range timeline {
 		createdAt, err := tweet.CreatedAtTime()
 		if err != nil {
 			log.Fatal(err)
 		}
 		log.Printf("[%v] @%s (%s): %s", createdAt.Local(), tweet.User.ScreenName, tweet.User.IdStr, tweet.Text)
 	}
+	log.Printf("%d tweets", len(timeline))
 }
 
 func getAccount(consumerKey string, consumerSecret string, accessToken string, accessTokenSecret string) (*twittergo.User, error) {
