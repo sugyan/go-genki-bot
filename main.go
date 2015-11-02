@@ -24,14 +24,18 @@ func main() {
 		accessTokenSecret = os.Getenv("ACCESS_TOKEN_SECRET")
 	)
 	bot := mentionbot.NewBot(botUserID, consumerKey, consumerSecret, accessToken, accessTokenSecret)
+	bot.SetMentioner(&Genki{})
 	bot.Debug(true)
-	bot.SetReaction(genki)
 	if err := bot.Run(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func genki(tweet *mentionbot.Tweet) (mention *string) {
+// Genki type implements mentionbot.Mentioner
+type Genki struct{}
+
+// Mention returns mention
+func (*Genki) Mention(tweet *mentionbot.Tweet) (mention *string) {
 	if tweet.InReplyToStatusID > 0 {
 		return
 	}
