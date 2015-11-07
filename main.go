@@ -16,14 +16,14 @@ func init() {
 }
 
 func main() {
-	var (
-		botUserID         = os.Getenv("USER_ID")
-		consumerKey       = os.Getenv("CONSUMER_KEY")
-		consumerSecret    = os.Getenv("CONSUMER_SECRET")
-		accessToken       = os.Getenv("ACCESS_TOKEN")
-		accessTokenSecret = os.Getenv("ACCESS_TOKEN_SECRET")
-	)
-	bot := mentionbot.NewBot(botUserID, consumerKey, consumerSecret, accessToken, accessTokenSecret)
+	config := &mentionbot.Config{
+		UserID:            os.Getenv("USER_ID"),
+		ConsumerKey:       os.Getenv("CONSUMER_KEY"),
+		ConsumerSecret:    os.Getenv("CONSUMER_SECRET"),
+		AccessToken:       os.Getenv("ACCESS_TOKEN"),
+		AccessTokenSecret: os.Getenv("ACCESS_TOKEN_SECRET"),
+	}
+	bot := mentionbot.NewBot(config)
 	bot.SetMentioner(&Genki{})
 	bot.Debug(true)
 	if err := bot.Run(); err != nil {
