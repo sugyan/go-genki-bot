@@ -73,6 +73,10 @@ func (*Genki) Mention(tweet *mentionbot.Tweet) (mention *string) {
 		return
 	}
 
-	text := shinpai + "げんきだして！"
+	hagemashi := "げんきだして！"
+	if rand.Intn(100) < 3 {
+		hagemashi = "まぁげんきだせやｗｗｗｗｗ"
+	}
+	text := shinpai + hagemashi
 	return &text
 }
