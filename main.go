@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/sugyan/mentionbot"
 	"log"
 	"math/rand"
@@ -46,7 +45,7 @@ func (*Genki) Mention(tweet *mentionbot.Tweet) (mention *string) {
 		return
 	}
 
-	shinpai := fmt.Sprintf("@%s ", tweet.User.ScreenName)
+	var shinpai string
 	switch {
 	case regexp.MustCompile("https?://").MatchString(tweet.Text):
 		return
@@ -54,21 +53,21 @@ func (*Genki) Mention(tweet *mentionbot.Tweet) (mention *string) {
 		if regexp.MustCompile("疲(?:れ(?:様|さ(?:ま|ん)))").MatchString(tweet.Text) {
 			return
 		}
-		shinpai += "疲れてるの？"
+		shinpai = "疲れてるの？"
 	case regexp.MustCompile("凹").MatchString(tweet.Text):
-		shinpai += "凹んでるの？"
+		shinpai = "凹んでるの？"
 	case regexp.MustCompile("心折").MatchString(tweet.Text):
-		shinpai += "心折れてるの？"
+		shinpai = "心折れてるの？"
 	case regexp.MustCompile("(?:寂|淋)し").MatchString(tweet.Text):
-		shinpai += "さびしいの？"
+		shinpai = "さびしいの？"
 	case regexp.MustCompile("弱っ").MatchString(tweet.Text):
-		shinpai += "弱ってるの？"
+		shinpai = "弱ってるの？"
 	case regexp.MustCompile("つらい").MatchString(tweet.Text):
-		shinpai += "つらくても、"
+		shinpai = "つらくても、"
 	case regexp.MustCompile("死にたい").MatchString(tweet.Text):
-		shinpai += "死なないで、"
+		shinpai = "死なないで、"
 	case regexp.MustCompile("お腹痛い").MatchString(tweet.Text):
-		shinpai += "トイレ行って、"
+		shinpai = "トイレ行って、"
 	case regexp.MustCompile("(?:。。。|orz)").MatchString(tweet.Text):
 	default:
 		return
