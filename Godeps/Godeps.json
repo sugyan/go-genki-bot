@@ -1,0 +1,14 @@
+{
+	"ImportPath": "github.com/sugyan/go-genki-bot",
+	"GoVersion": "go1.5.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/garyburd/go-oauth/oauth",
+			"Rev": "3131beb69b81ff119923bdefbf029318f1f53794"
+		},
+		{
+			"ImportPath": "github.com/sugyan/mentionbot",
+			"Rev": "bb2054fac33707cb47749e32b0f320443e63e44f"
+		}
+	]
+}
