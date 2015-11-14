@@ -24,7 +24,6 @@ func main() {
 	}
 	bot := mentionbot.NewBot(config)
 	bot.SetMentioner(&Genki{})
-	bot.Debug(true)
 	if err := bot.Run(); err != nil {
 		log.Fatal(err)
 	}
