@@ -1,0 +1,20 @@
+{
+    "name": "go-genki-bot",
+    "env": {
+        "CONSUMER_KEY": {
+            "description": "your app's consumer key"
+        },
+        "CONSUMER_SECRET": {
+            "description": "your app's consumer secret"
+        },
+        "ACCESS_TOKEN": {
+            "description": "your account's access token"
+        },
+        "ACCESS_TOKEN_SECRET": {
+            "description": "your account's access token secret"
+        },
+        "USER_ID": {
+            "description": "your account's user_id"
+        }
+    }
+}
